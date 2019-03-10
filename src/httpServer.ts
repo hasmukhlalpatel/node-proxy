@@ -13,7 +13,9 @@ export class  HttpServer extends HttpServerbase{
         super();
         this.port = port;
         this.options = options;
-        this.server = http.createServer(this.callback);
+        this.server = http.createServer((req,res)=>{
+            this.callback(req,res);
+        });
     }
 
     public listen() {

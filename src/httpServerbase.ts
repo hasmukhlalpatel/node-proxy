@@ -6,55 +6,72 @@ import HttpClientServerProxy from "./HttpClientServerProxy"
 export class  HttpServerbase{
 
     protected callback(srvRequest: http.IncomingMessage, srvResponse: http.ServerResponse): void{
-        const httpClient = HttpServerbase.BuildHttpClient(srvRequest);
 
-        httpClient.OnData((data:string, cliResponse: http.IncomingMessage)=>{
-            for (const header in cliResponse.headers) {
-                if (cliResponse.headers.hasOwnProperty(header)) {
-                    const headerData = cliResponse.headers[header];
-                    srvResponse.setHeader(header,headerData);
-                }
+        let options = this.BuildOptions(srvRequest);
+        let hasHeaderSet = false;
+
+        let clientDataCallback =  (data:string|Buffer, cliResponse: http.IncomingMessage)=>{
+            if(!hasHeaderSet){
+                hasHeaderSet = true;
+                this.SetHeaders(cliResponse, srvResponse);
+                srvResponse.statusCode = cliResponse.statusCode;
             }
-            srvResponse.statusCode = cliResponse.statusCode;
-            //srvResponse.write(data);
-            srvResponse.end(data);
-        });
+            srvResponse.write(data);
+        };
 
-        HttpServerbase.processRequestData(srvRequest, (data: string)=>{
+        let clientDataEndCallback = ()=>{
+            srvResponse.end();
+        };
+
+        const httpClient = new HttpClient(options, clientDataCallback, clientDataEndCallback);
+
+        this.SetHeaders1(srvRequest, httpClient.request);
+
+        HttpServerbase.processRequestData(srvRequest, (data: string|Buffer)=>{
             httpClient.Send(data);
-        });
+        },()=>{
+            httpClient.SendEnd(); 
+        } );
     }
 
-    private static BuildHttpClient(srvRequest: http.IncomingMessage) : HttpClient {
+    private SetHeaders(fromResponse: http.IncomingMessage, toResponse: http.ServerResponse) :void{
+        for (const header in fromResponse.headers) {
+                if (fromResponse.headers.hasOwnProperty(header)) {
+                    const headerData = fromResponse.headers[header];
+                    toResponse.setHeader(header,headerData);
+                }
+            }
+    }
+    
+    private SetHeaders1(fromResponse: http.IncomingMessage, toRequest: http.ClientRequest) :void{
+        for (const header in fromResponse.headers) {
+                if (fromResponse.headers.hasOwnProperty(header)) {
+                    const headerData = fromResponse.headers[header];
+                    toRequest.setHeader(header,headerData);
+                }
+            }
+    }
 
-        let options = {
+    private BuildOptions(srvRequest: http.IncomingMessage) : http.RequestOptions{
+        return {
             host : "127.0.0.1",
             path : srvRequest.url,
             method : srvRequest.method,
             port : 8080
         };
-
-        const httpClient = new HttpClient(options);
-
-        for (const header in srvRequest.headers) {
-            if (srvRequest.headers.hasOwnProperty(header)) {
-                const headerData = srvRequest.headers[header];
-                httpClient.request.setHeader(header,headerData);
-            }
-        }
-        return httpClient;
     }
 
-    private static processRequestData(srvRequest: http.IncomingMessage, forwardMsgCallback : (data:string)=> void ):void {
 
-        let reqData='';
-        
-        srvRequest.on("data",(data)=>{
-            reqData+=data;
+    private static processRequestData(srvRequest: http.IncomingMessage,
+         forwardDataCallback : (data:string|Buffer)=> void,
+         forwardDataEndCallback: ()=>void ):void {
+       
+        srvRequest.on("data",(data:string|Buffer)=>{
+            forwardDataCallback(data);
         });
 
         srvRequest.on("end",()=>{
-            forwardMsgCallback(reqData);
+            forwardDataEndCallback();
         });
     }
 }

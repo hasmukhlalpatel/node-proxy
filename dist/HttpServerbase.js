@@ -3,45 +3,57 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const HttpClient_1 = require("./HttpClient");
 class HttpServerbase {
     callback(srvRequest, srvResponse) {
-        const httpClient = HttpServerbase.BuildHttpClient(srvRequest);
-        httpClient.OnData((data, cliResponse) => {
-            for (const header in cliResponse.headers) {
-                if (cliResponse.headers.hasOwnProperty(header)) {
-                    const headerData = cliResponse.headers[header];
-                    srvResponse.setHeader(header, headerData);
-                }
+        let options = this.BuildOptions(srvRequest);
+        let hasHeaderSet = false;
+        let clientDataCallback = (data, cliResponse) => {
+            if (!hasHeaderSet) {
+                hasHeaderSet = true;
+                this.SetHeaders(cliResponse, srvResponse);
+                srvResponse.statusCode = cliResponse.statusCode;
             }
-            srvResponse.statusCode = cliResponse.statusCode;
-            //srvResponse.write(data);
-            srvResponse.end(data);
-        });
+            srvResponse.write(data);
+        };
+        let clientDataEndCallback = () => {
+            srvResponse.end();
+        };
+        const httpClient = new HttpClient_1.default(options, clientDataCallback, clientDataEndCallback);
+        this.SetHeaders1(srvRequest, httpClient.request);
         HttpServerbase.processRequestData(srvRequest, (data) => {
             httpClient.Send(data);
+        }, () => {
+            httpClient.SendEnd();
         });
     }
-    static BuildHttpClient(srvRequest) {
-        let options = {
-            host: "192.168.1.51",
+    SetHeaders(fromResponse, toResponse) {
+        for (const header in fromResponse.headers) {
+            if (fromResponse.headers.hasOwnProperty(header)) {
+                const headerData = fromResponse.headers[header];
+                toResponse.setHeader(header, headerData);
+            }
+        }
+    }
+    SetHeaders1(fromResponse, toRequest) {
+        for (const header in fromResponse.headers) {
+            if (fromResponse.headers.hasOwnProperty(header)) {
+                const headerData = fromResponse.headers[header];
+                toRequest.setHeader(header, headerData);
+            }
+        }
+    }
+    BuildOptions(srvRequest) {
+        return {
+            host: "127.0.0.1",
             path: srvRequest.url,
             method: srvRequest.method,
             port: 8080
         };
-        const httpClient = new HttpClient_1.default(options);
-        for (const header in srvRequest.headers) {
-            if (srvRequest.headers.hasOwnProperty(header)) {
-                const headerData = srvRequest.headers[header];
-                httpClient.request.setHeader(header, headerData);
-            }
-        }
-        return httpClient;
     }
-    static processRequestData(srvRequest, forwardMsgCallback) {
-        let reqData = '';
+    static processRequestData(srvRequest, forwardDataCallback, forwardDataEndCallback) {
         srvRequest.on("data", (data) => {
-            reqData += data;
+            forwardDataCallback(data);
         });
         srvRequest.on("end", () => {
-            forwardMsgCallback(reqData);
+            forwardDataEndCallback();
         });
     }
 }

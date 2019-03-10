@@ -8,7 +8,9 @@ class HttpServer extends HttpServerbase_1.default {
         super();
         this.port = port;
         this.options = options;
-        this.server = http.createServer(this.callback);
+        this.server = http.createServer((req, res) => {
+            this.callback(req, res);
+        });
     }
     listen() {
         this.server.listen(this.port);
