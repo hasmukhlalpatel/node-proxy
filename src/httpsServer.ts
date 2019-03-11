@@ -13,10 +13,10 @@ export class  HttpsServer extends HttpServerbase{
         super();        
         this.port = port;
         this.options = options;
-        this.server = https.createServer(options, this.callback);
+        this.server = https.createServer(options, (req, res)=>{
+            this.callback(req,res);
+        });
     }
-
-
 
     public listen() {
         this.server.listen(this.port);

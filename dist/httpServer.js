@@ -13,7 +13,9 @@ class HttpServer extends HttpServerbase_1.default {
         });
     }
     listen() {
-        this.server.listen(this.port);
+        this.server.listen(this.port, null, 511, () => {
+            console.log("Server listening on port:%s", this.port);
+        });
     }
 }
 exports.HttpServer = HttpServer;

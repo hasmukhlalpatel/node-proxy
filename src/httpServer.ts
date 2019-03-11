@@ -19,7 +19,9 @@ export class  HttpServer extends HttpServerbase{
     }
 
     public listen() {
-        this.server.listen(this.port);
+        this.server.listen(this.port,null, 511,()=>{
+            console.log( "Server listening on port:%s", this.port ); 
+        });
     }
 }
 
