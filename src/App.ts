@@ -1,22 +1,38 @@
 import HttpServerbase from "./HttpServerbase"
 import HttpServer from "./httpServer"
 import HttpsServer from "./httpsServer"
-import { port } from "_debugger";
+import HostConfig from "./HostConfig"
 
 export class App
 {
-    private http : HttpServer;
+    private httpHosts : HttpServerbase[];
 
-    constructor(private port:number) {
-        this.http = new HttpServer(port);
+    constructor() {
+        this.httpHosts =[];
     }
 
     Run()
     {
-        this.http.listen();
-        console.log("http servr runing on " + this.port);
+        const routs = HostConfig.Load("./configs/");
+
+        routs.forEach(x=>{
+            try {
+                var hostname = `${x.Host}:${x.Port}`;
+                const httpSrv = x.IsHttps? new HttpsServer(x):  new HttpServer(x);
+                this.httpHosts[hostname] = httpSrv;
+                httpSrv.listen();
+
+            } catch (error) {
+                console.error(`An error has occured while stating ${x.Host}:${x.Port}` );        
+            }
+        });
     }
 }
 
-let app = new App(5000);
+process.on('uncaughtException', function(err) {
+    // handle the error safely
+    console.log(err)
+})
+
+let app = new App();
 app.Run();

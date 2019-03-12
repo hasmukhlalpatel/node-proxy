@@ -1,17 +1,15 @@
 //https://docs.nodejitsu.com/articles/HTTP/clients/how-to-create-a-HTTP-request/
 import * as http from 'http'
 import HttpServerbase from "./HttpServerbase"
+import HostConfig from "./HostConfig"
 
 export class  HttpServer extends HttpServerbase{
 
     public server : http.Server;
     public options: http.RequestOptions;
-
-    private port : number;
-
-    constructor(port:number, options?: http.RequestOptions){
-        super();
-        this.port = port;
+    
+    constructor(hostConfig :HostConfig, options?: http.RequestOptions){
+        super(hostConfig);
         this.options = options;
         this.server = http.createServer((req,res)=>{
             this.callback(req,res);
@@ -19,8 +17,8 @@ export class  HttpServer extends HttpServerbase{
     }
 
     public listen() {
-        this.server.listen(this.port,null, 511,()=>{
-            console.log( "Server listening on port:%s", this.port ); 
+        this.server.listen(this.hostConfig.Port,this.hostConfig.Host, 511,()=>{
+            console.log( `Server listening on ${this.hostConfig.Host}:${this.hostConfig.Port}`); 
         });
     }
 }

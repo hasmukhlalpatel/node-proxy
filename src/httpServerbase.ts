@@ -1,14 +1,23 @@
 import * as http from 'http'
 import HttpClient from "./HttpClient"
-import HttpClientServerProxy from "./HttpClientServerProxy"
+import HostConfig from "./HostConfig"
 
+export abstract class  HttpServerbase{
 
-export class  HttpServerbase{
+    constructor(protected hostConfig :HostConfig) {
+        
+    }
+
+    public abstract listen():void;
 
     protected callback(srvRequest: http.IncomingMessage, srvResponse: http.ServerResponse): void{
 
         let options = this.BuildOptions(srvRequest);
         let hasHeaderSet = false;
+
+        srvResponse.on('error', (err) => {
+            console.error(err);
+        });
 
         let clientDataCallback =  (data:string|Buffer, cliResponse: http.IncomingMessage)=>{
             if(!hasHeaderSet){
@@ -23,7 +32,12 @@ export class  HttpServerbase{
             srvResponse.end();
         };
 
-        const httpClient = new HttpClient(options, clientDataCallback, clientDataEndCallback);
+        let errorCallback = (err: Error)=>{
+            srvResponse.statusCode = 500;
+            srvResponse.end();
+        }
+
+        const httpClient = new HttpClient(options, clientDataCallback, clientDataEndCallback, errorCallback);
 
         this.SetHeaders1(srvRequest, httpClient.request);
 
@@ -31,6 +45,9 @@ export class  HttpServerbase{
             httpClient.Send(data);
         },()=>{
             httpClient.SendEnd(); 
+        },(err: Error)=>{
+            srvResponse.statusCode = 500;
+
         } );
     }
 
@@ -64,7 +81,8 @@ export class  HttpServerbase{
 
     private static processRequestData(srvRequest: http.IncomingMessage,
          forwardDataCallback : (data:string|Buffer)=> void,
-         forwardDataEndCallback: ()=>void ):void {
+         forwardDataEndCallback: ()=>void,
+         forwardErrorCallback: (err: Error)=>void ):void {
        
         srvRequest.on("data",(data:string|Buffer)=>{
             forwardDataCallback(data);
@@ -72,6 +90,10 @@ export class  HttpServerbase{
 
         srvRequest.on("end",()=>{
             forwardDataEndCallback();
+        });
+
+        srvRequest.on("error", (err: Error) => {
+            forwardErrorCallback(err);
         });
     }
 }

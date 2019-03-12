@@ -7,7 +7,8 @@ export class HttpClient{
     
     constructor(public options: http.RequestOptions,
         dataCallback : (data:string|Buffer,response: http.IncomingMessage)=> void,
-        dataEndCallback : ()=> void){
+        dataEndCallback : ()=> void,
+        errorCallback : (err: Error)=> void){
 
             this.request = http.request(this.options, (response: http.IncomingMessage)=>{
             response.on("data",(data:string|Buffer)=>{
@@ -16,6 +17,10 @@ export class HttpClient{
     
             response.on("end",()=>{
                 dataEndCallback();
+            });
+
+            response.on("error", (err: Error)=>{
+                errorCallback(err);
             });
          });
 

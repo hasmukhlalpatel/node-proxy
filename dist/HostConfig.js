@@ -2,14 +2,15 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 class HostConfig {
     static Load(path) {
-        let local = new HostConfig();
-        {
-            Host: "test";
-        }
-        ;
-        return [local];
+        return [{
+                Host: "localhost",
+                Port: 5001
+            }];
     }
 }
 exports.HostConfig = HostConfig;
 exports.default = HostConfig;
+class RouteConfig {
+}
+exports.RouteConfig = RouteConfig;
 //# sourceMappingURL=HostConfig.js.map
