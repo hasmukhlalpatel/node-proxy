@@ -8,11 +8,11 @@ class App {
         this.httpHosts = [];
     }
     Run() {
-        const routs = HostConfig_1.default.Load("./configs/");
+        const routs = HostConfig_1.HostConfig.Load("./configs/");
         routs.forEach(x => {
             try {
                 var hostname = `${x.Host}:${x.Port}`;
-                const httpSrv = x.IsHttps ? new httpsServer_1.default(x) : new httpServer_1.default(x);
+                const httpSrv = x.IsHttps ? new httpsServer_1.HttpsServer(x) : new httpServer_1.default(x);
                 this.httpHosts[hostname] = httpSrv;
                 httpSrv.listen();
             }

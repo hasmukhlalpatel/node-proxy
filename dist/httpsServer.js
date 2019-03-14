@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 //https://docs.nodejitsu.com/articles/HTTP/clients/how-to-create-a-HTTP-request/
 const https = require("https");
 const HttpServerbase_1 = require("./HttpServerbase");
-class HttpsServer extends HttpServerbase_1.default {
+class HttpsServer extends HttpServerbase_1.HttpServerbase {
     constructor(hostConfig, options) {
         super(hostConfig);
         this.options = options;
@@ -18,5 +18,4 @@ class HttpsServer extends HttpServerbase_1.default {
     }
 }
 exports.HttpsServer = HttpsServer;
-exports.default = HttpsServer;
 //# sourceMappingURL=httpsServer.js.map

@@ -1,7 +1,7 @@
 //https://docs.nodejitsu.com/articles/HTTP/clients/how-to-create-a-HTTP-request/
 import * as https from 'https'
-import HttpServerbase from "./HttpServerbase"
-import HostConfig from "./HostConfig"
+import {HttpServerbase} from "./HttpServerbase"
+import {HostConfig} from "./HostConfig"
 
 export class  HttpsServer extends HttpServerbase{
 
@@ -22,5 +22,3 @@ export class  HttpsServer extends HttpServerbase{
         });
     }
 }
-
-export default HttpsServer;

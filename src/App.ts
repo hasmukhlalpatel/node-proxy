@@ -1,7 +1,7 @@
-import HttpServerbase from "./HttpServerbase"
+import {HttpServerbase} from "./HttpServerbase"
 import HttpServer from "./httpServer"
-import HttpsServer from "./httpsServer"
-import HostConfig from "./HostConfig"
+import {HttpsServer} from "./httpsServer"
+import {HostConfig} from "./HostConfig"
 
 export class App
 {

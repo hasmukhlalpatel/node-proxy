@@ -3,17 +3,24 @@ export class HostConfig {
     public Port? : number;
     public IsHttps?:boolean;
     public KeyFile? : string;
+    public PassPhrase? : string;
     public CertFile? : string;
     public Routes?: RouteConfig[];
 
     public static Load(path:string): HostConfig[]{
         return [{
             Host:"localhost",
-            Port : 5001
+            Port : 5000,
+            Routes:[
+                {
+                    Path: "/test$",
+                    TargetHost: "192.168.1.51",
+                    TargetPort: 8080
+                }
+            ]
         }];
     }
 }
-export default HostConfig;
 
 export class RouteConfig{
     public Path : string;

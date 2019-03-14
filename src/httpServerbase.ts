@@ -1,8 +1,9 @@
 import * as http from 'http'
-import HttpClient from "./HttpClient"
-import HostConfig from "./HostConfig"
+import {HttpClient} from "./HttpClient"
+import {HostConfig, RouteConfig} from "./HostConfig"
+import {IncomingMessageProcessor} from "./IncomingMessageProcessor";
 
-export abstract class  HttpServerbase{
+export abstract class HttpServerbase{
 
     constructor(protected hostConfig :HostConfig) {
         
@@ -41,13 +42,13 @@ export abstract class  HttpServerbase{
 
         this.SetHeaders1(srvRequest, httpClient.request);
 
-        HttpServerbase.processRequestData(srvRequest, (data: string|Buffer)=>{
+        //HttpServerbase.processRequestData
+        let reqProcessor = new IncomingMessageProcessor(srvRequest, (data: string|Buffer)=>{
             httpClient.Send(data);
         },()=>{
             httpClient.SendEnd(); 
         },(err: Error)=>{
             srvResponse.statusCode = 500;
-
         } );
     }
 
@@ -71,7 +72,7 @@ export abstract class  HttpServerbase{
 
     private BuildOptions(srvRequest: http.IncomingMessage) : http.RequestOptions{
         return {
-            host : "127.0.0.1",
+            host : "192.168.1.51",
             path : srvRequest.url,
             method : srvRequest.method,
             port : 8080
@@ -97,5 +98,3 @@ export abstract class  HttpServerbase{
         });
     }
 }
-
-export default HttpServerbase;

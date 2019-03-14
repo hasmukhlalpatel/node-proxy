@@ -27,5 +27,4 @@ class HttpClient {
     }
 }
 exports.HttpClient = HttpClient;
-exports.default = HttpClient;
 //# sourceMappingURL=HttpClient.js.map

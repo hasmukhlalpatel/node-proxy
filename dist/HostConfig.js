@@ -4,12 +4,18 @@ class HostConfig {
     static Load(path) {
         return [{
                 Host: "localhost",
-                Port: 5001
+                Port: 5000,
+                Routes: [
+                    {
+                        Path: "/test$",
+                        TargetHost: "192.168.1.51",
+                        TargetPort: 8080
+                    }
+                ]
             }];
     }
 }
 exports.HostConfig = HostConfig;
-exports.default = HostConfig;
 class RouteConfig {
 }
 exports.RouteConfig = RouteConfig;

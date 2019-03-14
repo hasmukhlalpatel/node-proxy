@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const HttpClient_1 = require("./HttpClient");
+const IncomingMessageProcessor_1 = require("./IncomingMessageProcessor");
 class HttpServerbase {
     constructor(hostConfig) {
         this.hostConfig = hostConfig;
@@ -26,9 +27,10 @@ class HttpServerbase {
             srvResponse.statusCode = 500;
             srvResponse.end();
         };
-        const httpClient = new HttpClient_1.default(options, clientDataCallback, clientDataEndCallback, errorCallback);
+        const httpClient = new HttpClient_1.HttpClient(options, clientDataCallback, clientDataEndCallback, errorCallback);
         this.SetHeaders1(srvRequest, httpClient.request);
-        HttpServerbase.processRequestData(srvRequest, (data) => {
+        //HttpServerbase.processRequestData
+        let reqProcessor = new IncomingMessageProcessor_1.IncomingMessageProcessor(srvRequest, (data) => {
             httpClient.Send(data);
         }, () => {
             httpClient.SendEnd();
@@ -54,7 +56,7 @@ class HttpServerbase {
     }
     BuildOptions(srvRequest) {
         return {
-            host: "127.0.0.1",
+            host: "192.168.1.51",
             path: srvRequest.url,
             method: srvRequest.method,
             port: 8080
@@ -73,5 +75,4 @@ class HttpServerbase {
     }
 }
 exports.HttpServerbase = HttpServerbase;
-exports.default = HttpServerbase;
 //# sourceMappingURL=HttpServerbase.js.map
