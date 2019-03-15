@@ -1,27 +1,36 @@
 //https://docs.nodejitsu.com/articles/HTTP/clients/how-to-create-a-HTTP-request/
 import * as http from 'http'
+import {RequestHeaders,ResponseHeaders} from "./HeaderPrcoessor";
+import {IncomingMessageProcessor} from "./IncomingMessageProcessor";
+
 
 export class HttpClient{
 
     public request: http.ClientRequest;
     
-    constructor(public options: http.RequestOptions,
-        dataCallback : (data:string|Buffer,response: http.IncomingMessage)=> void,
-        dataEndCallback : ()=> void,
-        errorCallback : (err: Error)=> void){
+    constructor(public options: http.RequestOptions, srvResponse: http.ServerResponse){
+        let hasHeaderSet = false;
+        this.request = http.request(this.options, (response: http.IncomingMessage)=>{
 
-            this.request = http.request(this.options, (response: http.IncomingMessage)=>{
-            response.on("data",(data:string|Buffer)=>{
-                dataCallback(data,response);
-            });
+            let clientDataCallback =  (data:string|Buffer, cliResponse: http.IncomingMessage)=>{
+                if(!hasHeaderSet){
+                    hasHeaderSet = true;
+                    new ResponseHeaders(cliResponse, srvResponse).SetHeaders();
+                    srvResponse.statusCode = cliResponse.statusCode;
+                }
+                srvResponse.write(data);
+            };
     
-            response.on("end",()=>{
-                dataEndCallback();
-            });
+            let clientDataEndCallback = ()=>{
+                srvResponse.end();
+            };
+    
+            let errorCallback = (err: Error)=>{
+                srvResponse.statusCode = 500;
+                srvResponse.end();
+            }
 
-            response.on("error", (err: Error)=>{
-                errorCallback(err);
-            });
+            let resProcessor = new IncomingMessageProcessor(response, clientDataCallback,clientDataEndCallback, errorCallback);
          });
 
     }

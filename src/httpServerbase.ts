@@ -2,6 +2,7 @@ import * as http from 'http'
 import {HttpClient} from "./HttpClient"
 import {HostConfig, RouteConfig} from "./HostConfig"
 import {IncomingMessageProcessor} from "./IncomingMessageProcessor";
+import {RequestHeaders,ResponseHeaders} from "./HeaderPrcoessor";
 
 export abstract class HttpServerbase{
 
@@ -14,35 +15,15 @@ export abstract class HttpServerbase{
     protected callback(srvRequest: http.IncomingMessage, srvResponse: http.ServerResponse): void{
 
         let options = this.BuildOptions(srvRequest);
-        let hasHeaderSet = false;
-
+ 
         srvResponse.on('error', (err) => {
             console.error(err);
         });
 
-        let clientDataCallback =  (data:string|Buffer, cliResponse: http.IncomingMessage)=>{
-            if(!hasHeaderSet){
-                hasHeaderSet = true;
-                this.SetHeaders(cliResponse, srvResponse);
-                srvResponse.statusCode = cliResponse.statusCode;
-            }
-            srvResponse.write(data);
-        };
+        const httpClient = new HttpClient(options, srvResponse);
 
-        let clientDataEndCallback = ()=>{
-            srvResponse.end();
-        };
+        new RequestHeaders(srvRequest, httpClient.request).SetHeaders();
 
-        let errorCallback = (err: Error)=>{
-            srvResponse.statusCode = 500;
-            srvResponse.end();
-        }
-
-        const httpClient = new HttpClient(options, clientDataCallback, clientDataEndCallback, errorCallback);
-
-        this.SetHeaders1(srvRequest, httpClient.request);
-
-        //HttpServerbase.processRequestData
         let reqProcessor = new IncomingMessageProcessor(srvRequest, (data: string|Buffer)=>{
             httpClient.Send(data);
         },()=>{
@@ -52,24 +33,6 @@ export abstract class HttpServerbase{
         } );
     }
 
-    private SetHeaders(fromResponse: http.IncomingMessage, toResponse: http.ServerResponse) :void{
-        for (const header in fromResponse.headers) {
-                if (fromResponse.headers.hasOwnProperty(header)) {
-                    const headerData = fromResponse.headers[header];
-                    toResponse.setHeader(header,headerData);
-                }
-            }
-    }
-    
-    private SetHeaders1(fromResponse: http.IncomingMessage, toRequest: http.ClientRequest) :void{
-        for (const header in fromResponse.headers) {
-                if (fromResponse.headers.hasOwnProperty(header)) {
-                    const headerData = fromResponse.headers[header];
-                    toRequest.setHeader(header,headerData);
-                }
-            }
-    }
-
     private BuildOptions(srvRequest: http.IncomingMessage) : http.RequestOptions{
         return {
             host : "192.168.1.51",
@@ -77,24 +40,5 @@ export abstract class HttpServerbase{
             method : srvRequest.method,
             port : 8080
         };
-    }
-
-
-    private static processRequestData(srvRequest: http.IncomingMessage,
-         forwardDataCallback : (data:string|Buffer)=> void,
-         forwardDataEndCallback: ()=>void,
-         forwardErrorCallback: (err: Error)=>void ):void {
-       
-        srvRequest.on("data",(data:string|Buffer)=>{
-            forwardDataCallback(data);
-        });
-
-        srvRequest.on("end",()=>{
-            forwardDataEndCallback();
-        });
-
-        srvRequest.on("error", (err: Error) => {
-            forwardErrorCallback(err);
-        });
     }
 }
