@@ -7,6 +7,7 @@ const HostConfig_1 = require("./HostConfig");
 const Middleware_1 = require("./Middlewares/Middleware");
 const LoggerMiddleware_1 = require("./Middlewares/LoggerMiddleware");
 const StaticFileMiddleware_1 = require("./Middlewares/StaticFileMiddleware");
+const ProxyMiddleware_1 = require("./Middlewares/ProxyMiddleware");
 class App {
     constructor() {
         this.httpHosts = [];
@@ -64,9 +65,8 @@ process.on('uncaughtException', function (err) {
 });
 App.UseMiddleware(Middleware_1.Middleware, 1);
 App.UseMiddleware(LoggerMiddleware_1.LoggerMiddleware, 2);
-App.UseMiddleware(StaticFileMiddleware_1.StaticFileMiddleware, 3);
-//App.InitMiddlewares();
-//App.InvokeMiddlewares(new HttpContext(null,null ,null));
+App.UseMiddleware(ProxyMiddleware_1.ProxyMiddleware, 5);
+App.UseMiddleware(StaticFileMiddleware_1.StaticFileMiddleware, 9);
 let app = new App();
 app.Run();
 //# sourceMappingURL=App.js.map

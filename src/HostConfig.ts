@@ -13,15 +13,22 @@ export class HostConfig {
             Port : 5000,
             Routes:[
                 {
-                    Path: "/page1/(.*)",
-                    TargetHost: "192.168.1.51",
+                    Path: "/sales/(.*)",
+                    TargetHost: "serverSales",
                     TargetPort: 8080,
-                    TargetPath : "image/jpeg.cgi?{R:1}"
+                    TargetPath : "sales?{R:1}"
                 },
                 {
-                    Path: "/page2/(.*)",
-                    TargetHost: "192.168.1.52",
-                    TargetPort: 8080
+                    Path: "/accounts/(.*)",
+                    TargetHost: "serverAcc",
+                    TargetPort: 8080,
+                    TargetPath : "accounts?{R:1}"
+                },
+                {
+                    Path: "/hr/(.*)",
+                    TargetHost: "serverHr",
+                    TargetPort: 8080,
+                    TargetPath : "hr?{R:1}"
                 }
             ]
         }];

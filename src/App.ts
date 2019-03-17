@@ -6,8 +6,7 @@ import {HttpContext} from "./HttpContext"
 import {Middleware,Middlewarebase} from "./Middlewares/Middleware";
 import {LoggerMiddleware } from "./Middlewares/LoggerMiddleware";
 import {StaticFileMiddleware} from "./Middlewares/StaticFileMiddleware"
-
-import {IDictionary,Dictionary} from "./Dictionary";
+import { ProxyMiddleware } from "./Middlewares/ProxyMiddleware";
 
 
 export class App
@@ -86,10 +85,8 @@ process.on('uncaughtException', function(err) {
 
 App.UseMiddleware<Middleware>(Middleware,1);
 App.UseMiddleware<LoggerMiddleware>(LoggerMiddleware,2);
-App.UseMiddleware<StaticFileMiddleware>(StaticFileMiddleware,3);
-
-//App.InitMiddlewares();
-//App.InvokeMiddlewares(new HttpContext(null,null ,null));
+App.UseMiddleware<ProxyMiddleware>(ProxyMiddleware,5);
+App.UseMiddleware<StaticFileMiddleware>(StaticFileMiddleware,9);
 
 let app = new App();
 app.Run();

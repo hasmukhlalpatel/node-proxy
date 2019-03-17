@@ -6,7 +6,7 @@ class StaticFileMiddleware extends Middleware_1.Middlewarebase {
         super(next);
     }
     Invoke(httpContext) {
-        console.log("LoggerMiddleware3");
+        console.log("StaticFile Middleware");
         this.next(httpContext);
     }
 }
