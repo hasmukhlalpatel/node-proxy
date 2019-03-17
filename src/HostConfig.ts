@@ -6,6 +6,7 @@ export class HostConfig {
     public PassPhrase? : string;
     public CertFile? : string;
     public Routes?: RouteConfig[];
+    public StaticFilePath? : string;
 
     public static Load(path:string): HostConfig[]{
         return [{

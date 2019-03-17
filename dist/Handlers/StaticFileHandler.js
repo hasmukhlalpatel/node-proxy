@@ -6,13 +6,16 @@ const url = require("url");
 const HandlerBase_1 = require("./HandlerBase");
 class StaticFileHandler extends HandlerBase_1.HandlerBase {
     ProcessRequest(httpContext) {
+        if (httpContext.HostConfig.StaticFilePath == null || httpContext.HostConfig.StaticFilePath.length == 0) {
+            return false;
+        }
         let request = httpContext.Request;
         let response = httpContext.Response;
         console.log(`${request.method} ${request.url}`);
         // parse URL
         const parsedUrl = url.parse(request.url);
         // extract URL path
-        let pathname = `.${parsedUrl.pathname}`;
+        let pathname = `${httpContext.HostConfig.StaticFilePath}${parsedUrl.pathname}`;
         // based on the URL path, extract the file extention. e.g. .js, .doc, ...
         const ext = path.parse(pathname).ext;
         // maps file extention to MIME typere
