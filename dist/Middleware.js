@@ -26,4 +26,14 @@ class LoggerMiddleware extends Middlewarebase {
     }
 }
 exports.LoggerMiddleware = LoggerMiddleware;
+class LoggerMiddleware2 extends Middlewarebase {
+    constructor(next) {
+        super(next);
+    }
+    Invoke(httpContext) {
+        console.log("LoggerMiddleware3");
+        this.next(httpContext);
+    }
+}
+exports.LoggerMiddleware2 = LoggerMiddleware2;
 //# sourceMappingURL=Middleware.js.map

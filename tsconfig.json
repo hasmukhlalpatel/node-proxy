@@ -7,7 +7,9 @@
     },
     "files": [
       "./node_modules/@types/mocha/index.d.ts",
-      "./node_modules/@types/node/index.d.ts"
+      "./node_modules/@types/node/index.d.ts",
+      "./src/Middlewares/LoggerMiddleware.ts",
+      "./src/Middlewares/StaticFileMiddleware.ts"
     ],
     "include": [
       "src/**/*.ts"

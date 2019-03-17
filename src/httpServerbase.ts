@@ -5,21 +5,19 @@ import {IncomingMessageProcessor} from "./IncomingMessageProcessor";
 import {RequestHeaders,ResponseHeaders} from "./HeaderPrcoessor";
 import {HttpContext} from "./HttpContext"
 // import { App } from './App';
-import {Middleware,LoggerMiddleware} from "./Middleware";
+import {Middlewarebase} from "./Middlewares/Middleware";
 
 
 export abstract class HttpServerbase{
 
-    public static middlewares : Middleware[] = [];
+    public static middlewares : Middlewarebase[] = [];
 
     constructor(protected hostConfig :HostConfig) {
         
     }
 
     public static InvokeMiddlewares(httpContext: HttpContext){
-        HttpServerbase.middlewares.forEach(middleware => {
-            middleware.Invoke(httpContext);
-        });
+        HttpServerbase.middlewares[0].Invoke(httpContext);
     }
 
     public abstract listen():void;
@@ -58,17 +56,17 @@ export abstract class HttpServerbase{
         var route = this.hostConfig.Routes.find(x=>{ return tempPath.match(x.Path) != null });
        
         if(route != null){
-            let newPath =  srvRequest.url;
+            let targetPath =  srvRequest.url;
             if(route.TargetPath != null){
                 let regExResult = tempPath.match(route.Path);
-                newPath = route.TargetPath.replace(/\s?\{[^}]+\}/g, (loc)=>{ return regExResult[loc]; });
+                targetPath = route.TargetPath.replace(/\s?\{[^}]+\}/g, (loc)=>{ return regExResult[loc]; });
             }
 
             return {
                 host : route.TargetHost,
-                path : newPath,
+                path : targetPath,
                 method : srvRequest.method,
-                port : 8080
+                port : route.TargetPort
             };
         }
         

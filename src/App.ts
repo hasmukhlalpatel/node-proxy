@@ -3,7 +3,12 @@ import HttpServer from "./httpServer"
 import {HttpsServer} from "./httpsServer"
 import {HostConfig} from "./HostConfig"
 import {HttpContext} from "./HttpContext"
-import {Middleware,LoggerMiddleware,Middlewarebase} from "./Middleware";
+import {Middleware,Middlewarebase} from "./Middlewares/Middleware";
+import {LoggerMiddleware } from "./Middlewares/LoggerMiddleware";
+import {StaticFileMiddleware} from "./Middlewares/StaticFileMiddleware"
+
+import {IDictionary,Dictionary} from "./Dictionary";
+
 
 export class App
 {
@@ -13,46 +18,51 @@ export class App
         this.httpHosts =[];
     }
 
-    private static middlewareTypes : typeof Middlewarebase[] = [];
+    private static middlewareTypes : {[sort:number]: {new(arg:any)  : Middlewarebase; }} =[];
+
     private static middlewares : Middlewarebase[] = [];
 
-    private static nextMiddleware = (httpContext: HttpContext)=>{
-        console.log("Default")
-    };
+    midd: {new(arg:any)  : Middlewarebase; }
 
-    //public static UseMiddleware<T extends Middlewarebase>(type: typeof Middlewarebase): T{
-
-    public static UseMiddleware<T extends Middlewarebase>(type: {new()  : T; }): T{
-        //App.middlewareTypes.push(type);
-        let middleware = new type(App.nextMiddleware);
-        App.nextMiddleware= middleware.Invoke;
-        App.middlewares.push(middleware);
-        return middleware;
+    public static UseMiddleware<T extends Middlewarebase>(type: {new(arg:any)  : T; }, order: number){
+        App.middlewareTypes[order] = type;
     }
 
-    // public static SetupMiddlewares(){
-    //     let nextMiddleware = (httpContext: HttpContext)=>{
-    //         console.log("Default")
-    //     };
+    public static InitMiddlewares(): void{
 
-    //     App.middlewareTypes.forEach(m => {
-    //         let middleware = new m(nextMiddleware);
-    //         nextMiddleware= middleware.Invoke;
-    //         App.middlewares.push(middleware);
-    //     }); 
-    // }
+        let lastMiddleware :Middlewarebase = null;
+
+        let  middlewareTypes = App.middlewareTypes as Array<any>;
+
+        for (let index = middlewareTypes.length; index >= 0; index--) {
+            const type = App.middlewareTypes[index];
+            if(type != undefined){
+                const currentMiddleware  = lastMiddleware;
+                let nextMiddleware = (httpContext: HttpContext)=>{
+                    if(currentMiddleware != null)
+                    {
+                        currentMiddleware.Invoke(httpContext);
+                    }else{
+                        console.log("Default")
+                    }
+                };
+
+                lastMiddleware = new type(nextMiddleware);
+                App.middlewares.push(lastMiddleware);
+            }
+        }
+        App.middlewares = App.middlewares.reverse();
+        HttpServerbase.middlewares = App.middlewares;
+    }
 
     public static InvokeMiddlewares(httpContext: HttpContext){
-            App.middlewares.forEach(middleware => {
-                middleware.Invoke(httpContext);
-            });
+        App.middlewares[0].Invoke(httpContext);
     }
     
 
     Run()
     {
-        //App.SetupMiddlewares();
-        HttpServerbase.middlewares = App.middlewares;
+        App.InitMiddlewares();
         const routs = HostConfig.Load("./configs/");
 
         routs.forEach(x=>{
@@ -74,9 +84,12 @@ process.on('uncaughtException', function(err) {
     console.log(err)
 })
 
-App.UseMiddleware<Middleware>(Middleware);
-App.UseMiddleware<LoggerMiddleware>(LoggerMiddleware);
+App.UseMiddleware<Middleware>(Middleware,1);
+App.UseMiddleware<LoggerMiddleware>(LoggerMiddleware,2);
+App.UseMiddleware<StaticFileMiddleware>(StaticFileMiddleware,3);
 
+//App.InitMiddlewares();
+//App.InvokeMiddlewares(new HttpContext(null,null ,null));
 
 let app = new App();
 app.Run();

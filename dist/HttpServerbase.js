@@ -9,9 +9,7 @@ class HttpServerbase {
         this.hostConfig = hostConfig;
     }
     static InvokeMiddlewares(httpContext) {
-        HttpServerbase.middlewares.forEach(middleware => {
-            middleware.Invoke(httpContext);
-        });
+        HttpServerbase.middlewares[0].Invoke(httpContext);
     }
     callback(srvRequest, srvResponse) {
         let httpContext = new HttpContext_1.HttpContext(this.hostConfig, srvRequest, srvResponse);
@@ -39,16 +37,16 @@ class HttpServerbase {
         let tempPath = srvRequest.url;
         var route = this.hostConfig.Routes.find(x => { return tempPath.match(x.Path) != null; });
         if (route != null) {
-            let newPath = srvRequest.url;
+            let targetPath = srvRequest.url;
             if (route.TargetPath != null) {
                 let regExResult = tempPath.match(route.Path);
-                newPath = route.TargetPath.replace(/\s?\{[^}]+\}/g, (loc) => { return regExResult[loc]; });
+                targetPath = route.TargetPath.replace(/\s?\{[^}]+\}/g, (loc) => { return regExResult[loc]; });
             }
             return {
                 host: route.TargetHost,
-                path: newPath,
+                path: targetPath,
                 method: srvRequest.method,
-                port: 8080
+                port: route.TargetPort
             };
         }
     }

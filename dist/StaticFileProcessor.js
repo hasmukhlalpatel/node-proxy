@@ -2,54 +2,64 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs = require("fs");
 const path = require("path");
+const url = require("url");
 class StaticFileProcessor {
     constructor(request, response) {
         this.request = request;
         this.response = response;
-        console.log('request starting...');
-        var filePath = '.' + request.url;
-        if (filePath == './')
-            filePath = './index.html';
-        var extname = path.extname(filePath);
-        var contentType = 'text/html';
-        switch (extname) {
-            case '.js':
-                contentType = 'text/javascript';
-                break;
-            case '.css':
-                contentType = 'text/css';
-                break;
-            case '.json':
-                contentType = 'application/json';
-                break;
-            case '.png':
-                contentType = 'image/png';
-                break;
-            case '.jpg':
-                contentType = 'image/jpg';
-                break;
-            case '.wav':
-                contentType = 'audio/wav';
-                break;
-        }
-        fs.readFile(filePath, function (error, content) {
-            if (error) {
-                if (error.code == 'ENOENT') {
-                    fs.readFile('./404.html', function (error, content) {
-                        response.writeHead(200, { 'Content-Type': contentType });
-                        response.end(content, 'utf-8');
-                    });
+        console.log(`${request.method} ${request.url}`);
+        // parse URL
+        const parsedUrl = url.parse(request.url);
+        // extract URL path
+        let pathname = `.${parsedUrl.pathname}`;
+        // based on the URL path, extract the file extention. e.g. .js, .doc, ...
+        const ext = path.parse(pathname).ext;
+        // maps file extention to MIME typere
+        const map = {
+            '.ico': 'image/x-icon',
+            '.html': 'text/html',
+            '.js': 'text/javascript',
+            '.json': 'application/json',
+            '.css': 'text/css',
+            '.png': 'image/png',
+            '.jpg': 'image/jpeg',
+            '.wav': 'audio/wav',
+            '.mp3': 'audio/mpeg',
+            '.svg': 'image/svg+xml',
+            '.pdf': 'application/pdf',
+            '.doc': 'application/msword'
+        };
+        fs.exists(pathname, function (exist) {
+            if (!exist) {
+                // if the file is not found, return 404
+                response.statusCode = 404;
+                response.end(`File ${pathname} not found!`);
+                return;
+            }
+            // if is a directory search for index file matching the extention
+            if (fs.statSync(pathname).isDirectory())
+                pathname += '/index' + ext;
+            // read file from file system
+            fs.readFile(pathname, function (err, data) {
+                if (err) {
+                    response.statusCode = 500;
+                    response.end(`Error getting the file: ${err}.`);
                 }
                 else {
-                    response.writeHead(500);
-                    response.end('Sorry, check with the site admin for error: ' + error.code + ' ..\n');
-                    response.end();
+                    // if the file is found, set Content-type and send data
+                    response.setHeader('Content-type', map[ext] || 'text/plain');
+                    // Website you wish to allow to connect
+                    response.setHeader('Access-Control-Allow-Origin', '*');
+                    // Request methods you wish to allow
+                    response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+                    // Request headers you wish to allow
+                    response.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+                    // Set to true if you need the website to include cookies in the requests sent
+                    // to the API (e.g. in case you use sessions)
+                    response.setHeader('Access-Control-Allow-Credentials', 'true');
+                    response.end(data);
                 }
-            }
-            else {
-                response.writeHead(200, { 'Content-Type': contentType });
-                response.end(content, 'utf-8');
-            }
+            });
         });
     }
 }
