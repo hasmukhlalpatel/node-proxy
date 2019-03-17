@@ -3,18 +3,38 @@ import {HttpClient} from "./HttpClient"
 import {HostConfig, RouteConfig} from "./HostConfig"
 import {IncomingMessageProcessor} from "./IncomingMessageProcessor";
 import {RequestHeaders,ResponseHeaders} from "./HeaderPrcoessor";
+import {HttpContext} from "./HttpContext"
+// import { App } from './App';
+import {Middleware,LoggerMiddleware} from "./Middleware";
+
 
 export abstract class HttpServerbase{
 
+    public static middlewares : Middleware[] = [];
+
     constructor(protected hostConfig :HostConfig) {
         
+    }
+
+    public static InvokeMiddlewares(httpContext: HttpContext){
+        HttpServerbase.middlewares.forEach(middleware => {
+            middleware.Invoke(httpContext);
+        });
     }
 
     public abstract listen():void;
 
     protected callback(srvRequest: http.IncomingMessage, srvResponse: http.ServerResponse): void{
 
+        let httpContext = new HttpContext(this.hostConfig, srvRequest, srvResponse);
+        HttpServerbase.InvokeMiddlewares(httpContext);
+
         let options = this.BuildOptions(srvRequest);
+        if(options == null){
+            srvResponse.end("No route found");
+            srvResponse.statusCode = 500;
+            return;
+        }
  
         srvResponse.on('error', (err) => {
             console.error(err);
@@ -34,11 +54,24 @@ export abstract class HttpServerbase{
     }
 
     private BuildOptions(srvRequest: http.IncomingMessage) : http.RequestOptions{
-        return {
-            host : "192.168.1.51",
-            path : srvRequest.url,
-            method : srvRequest.method,
-            port : 8080
-        };
+        let tempPath = srvRequest.url;
+        var route = this.hostConfig.Routes.find(x=>{ return tempPath.match(x.Path) != null });
+       
+        if(route != null){
+            let newPath =  srvRequest.url;
+            if(route.TargetPath != null){
+                let regExResult = tempPath.match(route.Path);
+                newPath = route.TargetPath.replace(/\s?\{[^}]+\}/g, (loc)=>{ return regExResult[loc]; });
+            }
+
+            return {
+                host : route.TargetHost,
+                path : newPath,
+                method : srvRequest.method,
+                port : 8080
+            };
+        }
+        
     }
 }
+
