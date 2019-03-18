@@ -4,6 +4,11 @@
   "description": "api gateway node js",
   "main": "dist/app.js",
   "scripts": {
+    "postinstall": "tsc -p .",
+    "watch": "tsc -w -p .",
+    "debug": "nodemon --watch ./dist --inspect=0.0.0.0:9222 --nolazy ./dist/app.js",
+    "docker-debug": "docker-compose up",
+    "start": "node ./dist/app.js",
     "build": "tsc",
     "dev": "tsc --watch & nodemon dist",
     "test": "tsc && mocha dist/**/*.spec.js",

@@ -7,22 +7,22 @@ class HostConfig {
                 Port: 5000,
                 Routes: [
                     {
-                        Path: "/sales/(.*)",
-                        TargetHost: "serverSales",
+                        Path: "/page1/(.*)",
+                        TargetHost: "192.168.1.51",
                         TargetPort: 8080,
-                        TargetPath: "sales?{R:1}"
+                        TargetPath: "image/jpeg.cgi?{R:1}"
                     },
                     {
-                        Path: "/accounts/(.*)",
-                        TargetHost: "serverAcc",
+                        Path: "/page2/(.*)",
+                        TargetHost: "192.168.1.52",
                         TargetPort: 8080,
-                        TargetPath: "accounts?{R:1}"
+                        TargetPath: "image/jpeg.cgi?{R:1}"
                     },
                     {
-                        Path: "/hr/(.*)",
-                        TargetHost: "serverHr",
+                        Path: "/page3/(.*)",
+                        TargetHost: "192.168.1.50",
                         TargetPort: 8080,
-                        TargetPath: "hr?{R:1}"
+                        TargetPath: "image/jpeg.cgi?{R:1}"
                     }
                 ]
             }];
